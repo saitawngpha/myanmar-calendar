@@ -261,7 +261,7 @@ The algorithm is capable of calculating from the commencement of the Myanmar Cal
 MIT License
 
 Copyright (c) 2017 Chan Mrate Ko Ko (Original Java implementation)
-Copyright (c) 2025 Swift Port
+Copyright (c) 2025 Sai Tawng Pha (Swift Port)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
