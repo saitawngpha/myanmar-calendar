@@ -1,15 +1,18 @@
 import Foundation
 
 /// Core Calculation and Algorithms for Myanmar Date
-struct MyanmarDateKernel {
+public struct MyanmarDateKernel {
 
-    enum MyanmarDateError: Error {
+    private init() {}
+
+    public enum MyanmarDateError: Error {
         case invalidJulianDayNumber(String)
         case invalidMonthName(String)
+        case invalidWesternDate(String)
     }
 
     /// Year type enumeration
-    enum YearType: Int {
+    public enum YearType: Int {
         case common = 0
         case littleWatat = 1
         case bigWatat = 2
@@ -19,7 +22,7 @@ struct MyanmarDateKernel {
     /// - Parameter jd: julian day number
     /// - Returns: MyanmarDate Object representing the converted date
     /// - Throws: MyanmarDateError if the Julian day number is invalid
-    static func julianToMyanmarDate(_ jd: Double) throws -> MyanmarDate {
+    public static func julianToMyanmarDate(_ jd: Double) throws -> MyanmarDate {
 
         guard jd >= 0 else {
             throw MyanmarDateError.invalidJulianDayNumber("Julian day number cannot be negative.")
@@ -109,7 +112,7 @@ struct MyanmarDateKernel {
     ///   - tg1: the 1st day of Tagu as Julian Day Number
     ///   - fm: full moon day of [2nd] Waso as Julian Day Number
     ///   - werr: [0=ok, 1= error]
-    static func checkMyanmarYear(_ myear: Int) -> [String: Int] {
+    public static func checkMyanmarYear(_ myear: Int) -> [String: Int] {
 
         let y2 = checkWatat(myear)
         var myt = y2["watat"]!
@@ -151,13 +154,13 @@ struct MyanmarDateKernel {
     /// - Returns: Dictionary containing:
     ///   - watat: intercalary month [1=watat, 0=common]
     ///   - fm: full moon day of 2nd Waso in jdn_mm (only valid when watat=1)
-    static func checkWatat(_ my: Int) -> [String: Int] {
+    public static func checkWatat(_ my: Int) -> [String: Int] {
 
         // get constants for the corresponding calendar era
         let c = MyanmarYearConstants.getMyConst(my)
 
         // threshold to adjust
-        let threshold = (Constants.SY / 12 - Constants.LM) * (12 - c["NM"]!)
+        let threshold = (Constants.SY / 12 - Constants.LM) * (12 - c.numberOfMonths)
         // excess day
         var ed = (Constants.SY * Double(my + 3739)).truncatingRemainder(dividingBy: Constants.LM)
 
@@ -167,14 +170,14 @@ struct MyanmarDateKernel {
         }
 
         // full moon day of 2nd Waso
-        let fm = Int((Constants.SY * Double(my) + Constants.MO - ed + 4.5 * Constants.LM + c["WO"]!).rounded())
+        let fm = Int((Constants.SY * Double(my) + Constants.MO - ed + 4.5 * Constants.LM + c.watatOffset).rounded())
 
         var watat = 0
 
         // find watat
-        if c["EI"]! >= 2 {
+        if c.eraId >= 2 {
             // if 2nd era or later find watat based on excess days
-            let tw = Constants.LM - (Constants.SY / 12 - Constants.LM) * c["NM"]!
+            let tw = Constants.LM - (Constants.SY / 12 - Constants.LM) * c.numberOfMonths
 
             if ed >= tw {
                 watat = 1
@@ -188,7 +191,7 @@ struct MyanmarDateKernel {
             watat = Int(floor(Double(watatTemp) / 12.0))
         }
         // correct watat exceptions
-        watat ^= Int(c["EW"]!)
+        watat ^= Int(c.exceptionInWatatYear)
 
         return [
             "fm": fm,
@@ -202,7 +205,7 @@ struct MyanmarDateKernel {
     ///   - mmonth: Myanmar month [Tagu=1, Kason=2, Nayon=3, 1st Waso=0, (2nd) Waso=4, Wagaung=5, Tawthalin=6, Thadingyut=7, Tazaungmon=8, Nadaw=9, Pyatho=10, Tabodwe=11, Tabaung=12, Late Tagu=13, Late Kason=14]
     ///   - mmday: Myanmar's day of month [1 to 29 or 30]
     /// - Returns: julian day number
-    static func myanmarDateToJulian(_ myear: Int, _ mmonth: Int, _ mmday: Int) -> Int {
+    public static func myanmarDateToJulian(_ myear: Int, _ mmonth: Int, _ mmday: Int) -> Int {
 
         let yo = checkMyanmarYear(myear)
 
@@ -235,7 +238,7 @@ struct MyanmarDateKernel {
     ///   - mmday: day of month [from 1 to 29 or 30]
     /// - Returns: Julian Day Number
     /// - Throws: MyanmarDateError if month name is invalid
-    static func getJulianDayNumber(_ myear: Int, _ myanmarMonthName: String, _ mmday: Int) throws -> Double {
+    public static func getJulianDayNumber(_ myear: Int, _ myanmarMonthName: String, _ mmday: Int) throws -> Double {
         let mmonth = searchMyanmarMonthNumber(myanmarMonthName)
         if mmonth < 0 {
             throw MyanmarDateError.invalidMonthName("Invalid value for myanmarMonthName: \(myanmarMonthName)")
@@ -246,7 +249,7 @@ struct MyanmarDateKernel {
     /// Myanmar Month name to Myanmar month number
     /// - Parameter myanmarMonthName: Myanmar month name
     /// - Returns: myanmar month number or -1 if invalid
-    static func searchMyanmarMonthNumber(_ myanmarMonthName: String) -> Int {
+    public static func searchMyanmarMonthNumber(_ myanmarMonthName: String) -> Int {
         switch myanmarMonthName.lowercased() {
         case "first waso":
             return 0
@@ -286,7 +289,7 @@ struct MyanmarDateKernel {
     /// Search moon phase by name
     /// - Parameter moonPhase: moon phase name
     /// - Returns: moon phase number or -1 if invalid
-    static func searchMoonPhase(_ moonPhase: String) -> Int {
+    public static func searchMoonPhase(_ moonPhase: String) -> Int {
         switch moonPhase.lowercased() {
         case "waxing":
             return 0

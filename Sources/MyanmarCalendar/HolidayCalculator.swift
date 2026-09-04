@@ -30,10 +30,10 @@ public struct HolidayCalculator {
     // MARK: - English Holidays
 
     /// Check for English Holiday
-    static func englishHoliday(_ gy: Int, _ gm: Int, _ gd: Int) -> [String] {
+    public static func englishHoliday(_ gy: Int, _ gm: Int, _ gd: Int) -> [String] {
         var holiday: [String] = []
 
-        if ((gy >= 2018 && gy <= 2021) || (gy >= 2025) && gm == 1 && gd == 1)
+        if (((gy >= 2018 && gy <= 2021) || gy >= 2025) && gm == 1 && gd == 1)
             || (gy == 2026 && gm == 1 && gd == 2) {
             holiday.append("New Year's Day")
         } else if gy >= 1948 && gm == 1 && gd == 4 {
@@ -59,7 +59,7 @@ public struct HolidayCalculator {
         return holiday
     }
 
-    static func continuousHoliday(_ gy: Int, _ gm: Int, _ gd: Int) -> [String] {
+    public static func continuousHoliday(_ gy: Int, _ gm: Int, _ gd: Int) -> [String] {
         var holiday: [String] = []
 
         // Update For 2024 and 2025 Calendar Year
@@ -77,7 +77,7 @@ public struct HolidayCalculator {
     // MARK: - Myanmar Holidays
 
     /// Check for Myanmar Holiday
-    static func myanmarHoliday(_ myear: Int, _ mmonth: Int, _ monthDay: Int, _ moonPhase: Int) -> [String] {
+    public static func myanmarHoliday(_ myear: Int, _ mmonth: Int, _ monthDay: Int, _ moonPhase: Int) -> [String] {
         var holiday: [String] = []
 
         if mmonth == 2 && moonPhase == 1 {

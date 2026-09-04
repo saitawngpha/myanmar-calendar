@@ -1,14 +1,16 @@
 import Foundation
 
 /// Core Calculation and Algorithm for Western Date
-struct WesternDateKernel {
+public struct WesternDateKernel {
+
+    private init() {}
 
     /// Julian date to Western date
     /// - Parameters:
     ///   - julianDate: julian date
     ///   - calendarType: CalendarType enum
     /// - Returns: WesternDate object
-    static func julianToWestern(_ julianDate: Double, _ calendarType: CalendarType) -> WesternDate {
+    public static func julianToWestern(_ julianDate: Double, _ calendarType: CalendarType) -> WesternDate {
         return julianToWestern(julianDate, calendarType.number, 0)
     }
 
@@ -18,7 +20,7 @@ struct WesternDateKernel {
     ///   - calType: calendar type [0=english (default), 1=Gregorian, 2=Julian]
     ///   - sg: Beginning of Gregorian calendar in JDN [default=2361222]
     /// - Returns: WesternDate object
-    static func julianToWestern(_ julianDate: Double, _ calType: Int, _ sg: Double) -> WesternDate {
+    public static func julianToWestern(_ julianDate: Double, _ calType: Int, _ sg: Double) -> WesternDate {
 
         let adjustedCalType = max(0, calType)
         // Gregorian start in English calendar (1752/Sep/14)
@@ -79,7 +81,7 @@ struct WesternDateKernel {
     ///   - calType: calendar type [0=english (default), 1=Gregorian, 2=Julian]
     ///   - sg: Beginning of Gregorian calendar in JDN [default=2361222]
     /// - Returns: Julian day number
-    static func westernToJulian(_ year: Int, _ month: Int, _ day: Int, _ calType: Int, _ sg: Double) -> Double {
+    public static func westernToJulian(_ year: Int, _ month: Int, _ day: Int, _ calType: Int, _ sg: Double) -> Double {
 
         let adjustedCalType = max(0, calType)
         // Gregorian start in English calendar (1752/Sep/14)
@@ -116,7 +118,7 @@ struct WesternDateKernel {
     ///   - calendarType: CalendarType enum
     ///   - sg: Beginning of Gregorian calendar in JDN
     /// - Returns: Julian day number
-    static func westernToJulian(_ year: Int, _ month: Int, _ day: Int, _ calendarType: CalendarType, _ sg: Double) -> Double {
+    public static func westernToJulian(_ year: Int, _ month: Int, _ day: Int, _ calendarType: CalendarType, _ sg: Double) -> Double {
         return westernToJulian(year, month, day, calendarType.number, sg)
     }
 
@@ -131,7 +133,7 @@ struct WesternDateKernel {
     ///   - calendarType: CalendarType enum
     ///   - sg: Beginning of Gregorian calendar in JDN
     /// - Returns: Julian day number
-    static func westernToJulian(_ year: Int, _ month: Int, _ day: Int, _ hour: Int, _ minute: Int, _ second: Int, _ calendarType: CalendarType, _ sg: Double) -> Double {
+    public static func westernToJulian(_ year: Int, _ month: Int, _ day: Int, _ hour: Int, _ minute: Int, _ second: Int, _ calendarType: CalendarType, _ sg: Double) -> Double {
         let fractionOfDay = timeToDayFractionStartFrom12Noon(Double(hour), Double(minute), Double(second))
         return westernToJulian(year, month, day, calendarType.number, sg) + fractionOfDay
     }
@@ -142,7 +144,7 @@ struct WesternDateKernel {
     ///   - minute: minute
     ///   - second: second
     /// - Returns: fraction of day
-    static func timeToDayFractionStartFrom12Noon(_ hour: Double, _ minute: Double, _ second: Double) -> Double {
+    public static func timeToDayFractionStartFrom12Noon(_ hour: Double, _ minute: Double, _ second: Double) -> Double {
         return (hour - 12) / 24 + minute / 1440 + second / 86400
     }
 
@@ -152,7 +154,7 @@ struct WesternDateKernel {
     ///   - month: Western Month [Jan=1, ... , Dec=12]
     ///   - calendarType: Calendar type
     /// - Returns: julian day number of start of month
-    static func getJulianDayNumberOfStartOfMonth(_ year: Int, _ month: Int, _ calendarType: CalendarType) -> Int {
+    public static func getJulianDayNumberOfStartOfMonth(_ year: Int, _ month: Int, _ calendarType: CalendarType) -> Int {
         return Int(westernToJulian(year, month, 1, calendarType.number, 0))
     }
 
@@ -162,7 +164,7 @@ struct WesternDateKernel {
     ///   - month: Month
     ///   - calendarType: Calendar type
     /// - Returns: Julian day number of end of the month
-    static func getJulianDayNumberOfEndOfMonth(_ year: Int, _ month: Int, _ calendarType: CalendarType) -> Int {
+    public static func getJulianDayNumberOfEndOfMonth(_ year: Int, _ month: Int, _ calendarType: CalendarType) -> Int {
         let js = getJulianDayNumberOfStartOfMonth(year, month, calendarType)
         let eml = getLengthOfMonth(year, month, calendarType.number)
         return js + eml - 1
@@ -174,7 +176,7 @@ struct WesternDateKernel {
     ///   - month: Month [Jan=1, ... , Dec=12]
     ///   - calendarType: [0=English, 1=Gregorian, 2=Julian]
     /// - Returns: the length of a month
-    static func getLengthOfMonth(_ year: Int, _ month: Int, _ calendarType: Int) -> Int {
+    public static func getLengthOfMonth(_ year: Int, _ month: Int, _ calendarType: Int) -> Int {
         var leap = 0
         // length of the current month
         var mLen = 30 + Int((Double(month) + floor(Double(month) / 8.0)).truncatingRemainder(dividingBy: 2))

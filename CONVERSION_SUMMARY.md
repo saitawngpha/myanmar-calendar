@@ -5,11 +5,12 @@ Successfully converted the entire Myanmar Calendar Java library to a pure Swift 
 
 ## Conversion Statistics
 
-- **Total Swift Files Created**: 19
-- **Java Files Converted**: 21+ (including test files)
+- **Total Swift Files Created**: 22
+- **Java Files Converted**: 23 (the complete `mmcalendar` main source set)
 - **Build Status**: ✅ Success (no errors, no warnings)
-- **Test Status**: ✅ All tests passing (9/9)
+- **Test Status**: ✅ All tests passing (37/37)
 - **Package Type**: Swift Package Manager (SPM)
+- **Verification**: differential-tested against the Java reference (see below)
 
 ## File Conversion Map
 
@@ -52,10 +53,16 @@ Successfully converted the entire Myanmar Calendar Java library to a pure Swift 
 | HolidayCalculator.java | HolidayCalculator.swift | ✅ Complete |
 | BusinessDayCalculator.java | BusinessDayCalculator.swift | ✅ Complete |
 
+### Formatting & Parsing
+| Java File | Swift File | Status |
+|-----------|------------|--------|
+| MyanmarDateFormat.java | MyanmarDateFormat.swift | ✅ Complete |
+| MyanmarDateParser.java | MyanmarDateParser.swift | ✅ Complete |
+| MyanmarEraConstants.java | MyanmarEraConstants.swift | ✅ Complete |
+
 ### Not Converted (Not Needed)
 | Java File | Reason |
 |-----------|--------|
-| MyanmarDateFormat.java | Replaced by native Swift formatting in MyanmarDate |
 | util/ObjectBuilder.java | Not needed - Swift has native builder patterns |
 
 ## Key Features Implemented
@@ -144,10 +151,50 @@ let monthName = myanmarDate.getMonthName(.english)
 - Basic date conversion (Western ↔ Myanmar)
 - Myanmar date creation
 - Multi-language support
-- Date formatting
+- Date formatting and parsing
 - Buddhist Era calculations
 - Week day calculations
 - Round-trip conversions
+- Public kernels, `Astro` localized getters, `MyanmarDate` arithmetic
+- Translator correctness in all 36 language pairs
+
+## Verification Against the Java Reference
+
+The port was checked by differential testing rather than by inspection: the Java
+library was compiled alongside a CSV dump driver, an equivalent Swift driver was
+built, and the outputs were diffed.
+
+| Surface | Cases | Result |
+|---------|-------|--------|
+| Day-by-day fields, astro, holidays, anniversaries, business days | 548,501 consecutive days (~AD 640–2140) | byte-identical |
+| `myanmarDateToJulian`, `checkWatat`, `checkMyanmarYear` | ME 2–1500 × 15 months × 30 days | byte-identical |
+| `MyanmarMonths`, `Thingyan`, calendar headers, formatting | all 6 languages | byte-identical |
+| `Astro` getters, `MyanmarDate` API, `create` overloads, era constants | 125,424 rows | byte-identical |
+| `MyanmarDateParser` round trips | 31,080 format/parse pairs | byte-identical |
+| `LanguageTranslator` word + sentence APIs | all 36 language pairs | byte-identical |
+
+### Divergences found and fixed
+1. `HolidayCalculator.englishHoliday` — a misplaced parenthesis made `&&` bind
+   tighter than `||`, so every day of 2018–2021 reported "New Year's Day" and
+   masked the rest of the `else if` chain.
+2. `BusinessDayCalculator` — the 2026 substitute business day was 1 Jan **3**
+   instead of 1 Jan **10**.
+3. `MyanmarDate.getFortnightDay` — missing the moon-phase guard, so full moon and
+   new moon days printed a fortnight number where the reference prints nothing.
+4. `LanguageTranslator` — the catalog was partial and sentence translation was a
+   small lookup table rather than a trie, leaving Mon, Tai and Sgaw Karen
+   untranslated and using Myanmar digits for Tai.
+
+### Implementation notes worth preserving
+- The sentence trie walks **UTF-16 code units**, not Swift `Character`s. Grapheme
+  clustering merges a space with a following Myanmar spacing vowel sign (UAX #29
+  GB9a), which hides the start of the next word from the matcher.
+- Duplicate source words (Karen "မုၢ်ဖီဖး" is both "Good Friday" and "Friday";
+  "နေ့" is both "Nay" and "Day") resolve to the **last** matching catalog row,
+  matching Java's map/trie population order.
+- Regenerate the catalog from the Java source rather than retyping it; that also
+  keeps Myanmar strings byte-identical instead of drifting between Unicode
+  normalization forms.
 
 ## Package Structure
 
@@ -165,7 +212,10 @@ MyanmarCalendar/
 │   ├── WesternDateKernel.swift
 │   ├── MyanmarCalendarKernel.swift
 │   ├── MyanmarYearConstants.swift
+│   ├── MyanmarEraConstants.swift
 │   ├── MyanmarDate.swift
+│   ├── MyanmarDateFormat.swift
+│   ├── MyanmarDateParser.swift
 │   ├── WesternDate.swift
 │   ├── MyanmarMonths.swift
 │   ├── Astro.swift
@@ -177,7 +227,8 @@ MyanmarCalendar/
 │   ├── HolidayCalculator.swift
 │   └── BusinessDayCalculator.swift
 ├── Tests/MyanmarCalendarTests/
-│   └── MyanmarCalendarTests.swift
+│   ├── MyanmarCalendarTests.swift
+│   └── MyanmarCalendarAPITests.swift
 └── Examples/
     └── BasicUsage.swift
 ```
@@ -192,10 +243,10 @@ MyanmarCalendar/
 ## Future Enhancements (Optional)
 
 If needed, these can be added:
-1. More extensive localization data
-2. Calendar UI components (SwiftUI views)
-3. Additional holiday data for years beyond 2026
-4. More comprehensive translation dictionaries
+1. Calendar UI components (SwiftUI views)
+2. Additional holiday data for years beyond 2026
+3. `LocalDate` / `ZonedDateTime` equivalents beyond the current
+   `WesternDate` / `Foundation.Date` bridges
 
 ## Credits
 

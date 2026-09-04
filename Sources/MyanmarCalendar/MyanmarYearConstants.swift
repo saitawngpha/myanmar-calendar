@@ -1,23 +1,22 @@
 import Foundation
 
-struct MyanmarYearConstants {
+/// Provides era-specific constants for Myanmar calendar calculations.
+public struct MyanmarYearConstants {
 
-    /// Get Myanmar year constants depending on era
+    private init() {}
+
+    /// Get Myanmar year constants depending on era.
     /// - Parameter my: myanmar year
-    /// - Returns: Dictionary containing:
-    ///   - EI: Myanmar calendar era id [1-3]
-    ///   - WO: watat offset to compensate
-    ///   - NM: number of months to find excess days
-    ///   - EW: exception in watat year
-    static func getMyConst(_ my: Int) -> [String: Double] {
+    /// - Returns: `MyanmarEraConstants` containing era-specific calculation constants
+    public static func getMyConst(_ my: Int) -> MyanmarEraConstants {
 
         var eraId: Double
         var watatOffset: Double
         var numberOfMonths: Double
         var exceptionInWatatYear: Double = 0
 
-        var fme: [[Int]]
-        var wte: [Int]
+        let fme: [[Int]]
+        let wte: [Int]
 
         // The third era (the era after Independence 1312 ME and after)
         if my >= 1312 {
@@ -68,58 +67,22 @@ struct MyanmarYearConstants {
             wte = []
         }
 
-        var i = bSearch2(my, fme)
+        var i = BinarySearchUtil.search(Double(my), fme)
         if i >= 0 {
             // full moon day offset exceptions
             watatOffset += Double(fme[i][1])
         }
-        i = bSearch1(my, wte)
+        i = BinarySearchUtil.search(Double(my), wte)
         if i >= 0 {
             // correct watat exceptions
             exceptionInWatatYear = 1
         }
 
-        return [
-            "EI": eraId,
-            "WO": watatOffset,
-            "NM": numberOfMonths,
-            "EW": exceptionInWatatYear
-        ]
-    }
-
-    /// Binary search for array with two elements
-    private static func bSearch2(_ key: Int, _ arr: [[Int]]) -> Int {
-        var low = 0
-        var high = arr.count - 1
-
-        while low <= high {
-            let mid = (low + high) / 2
-            if arr[mid][0] == key {
-                return mid
-            } else if arr[mid][0] < key {
-                low = mid + 1
-            } else {
-                high = mid - 1
-            }
-        }
-        return -1
-    }
-
-    /// Binary search for array with one element
-    private static func bSearch1(_ key: Int, _ arr: [Int]) -> Int {
-        var low = 0
-        var high = arr.count - 1
-
-        while low <= high {
-            let mid = (low + high) / 2
-            if arr[mid] == key {
-                return mid
-            } else if arr[mid] < key {
-                low = mid + 1
-            } else {
-                high = mid - 1
-            }
-        }
-        return -1
+        return MyanmarEraConstants(
+            eraId: eraId,
+            watatOffset: watatOffset,
+            numberOfMonths: numberOfMonths,
+            exceptionInWatatYear: exceptionInWatatYear
+        )
     }
 }

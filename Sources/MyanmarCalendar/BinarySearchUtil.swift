@@ -1,14 +1,16 @@
 import Foundation
 
 /// Binary Search Utility
-struct BinarySearchUtil {
+public struct BinarySearchUtil {
+
+    private init() {}
 
     /// Search first dimension in a 2D array
     /// - Parameters:
     ///   - key: search key
     ///   - array: search in array
     /// - Returns: index or -1 if not found
-    static func search(_ key: Double, _ array: [[Int]]) -> Int {
+    public static func search(_ key: Double, _ array: [[Int]]) -> Int {
         var l = 0
         var u = array.count - 1
 
@@ -30,7 +32,7 @@ struct BinarySearchUtil {
     ///   - key: search key
     ///   - array: search in array
     /// - Returns: index or -1 if not found
-    static func search(_ key: Double, _ array: [Int]) -> Int {
+    public static func search(_ key: Double, _ array: [Int]) -> Int {
         var l = 0
         var u = array.count - 1
 

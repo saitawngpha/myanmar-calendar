@@ -1,10 +1,12 @@
 import Foundation
 
 /// Calculation Algorithms for Myanmar Astro
-struct AstroKernel {
+public struct AstroKernel {
+
+    private init() {}
 
     /// Calculate thamaphyu
-    static func calculateThamaphyu(_ md: Int, _ weekDay: Int) -> Int {
+    public static func calculateThamaphyu(_ md: Int, _ weekDay: Int) -> Int {
         let mf = MyanmarCalendarKernel.calculateFortnightDay(md)
         let wda = [1, 2, 6, 6, 5, 6, 7]
         let wdb = [0, 1, 0, 0, 0, 3, 3]
@@ -12,7 +14,7 @@ struct AstroKernel {
     }
 
     /// nagapor
-    static func calculateNagapor(_ md: Int, _ weekDay: Int) -> Int {
+    public static func calculateNagapor(_ md: Int, _ weekDay: Int) -> Int {
         let wda = [26, 21, 2, 10, 18, 2, 21]
         let wdb = [17, 19, 1, 0, 9, 0, 0]
 
@@ -23,7 +25,7 @@ struct AstroKernel {
     }
 
     /// yatyotema
-    static func calculateYatyotema(_ mmonth: Int, _ md: Int) -> Int {
+    public static func calculateYatyotema(_ mmonth: Int, _ md: Int) -> Int {
         var adjustedMonth = mmonth
         let mmt = adjustedMonth / 13
         adjustedMonth = adjustedMonth % 13 + mmt
@@ -38,7 +40,7 @@ struct AstroKernel {
     }
 
     /// mahayatkyan
-    static func calculateMahayatkyan(_ mmonth: Int, _ md: Int) -> Int {
+    public static func calculateMahayatkyan(_ mmonth: Int, _ md: Int) -> Int {
         var adjustedMonth = mmonth
         if adjustedMonth <= 0 {
             adjustedMonth = 4
@@ -51,7 +53,7 @@ struct AstroKernel {
     }
 
     /// shanyat
-    static func calculateShanyat(_ mmonth: Int, _ md: Int) -> Int {
+    public static func calculateShanyat(_ mmonth: Int, _ md: Int) -> Int {
         var adjustedMonth = mmonth
         let mmt = adjustedMonth / 13
         adjustedMonth = adjustedMonth % 13 + mmt
@@ -65,7 +67,7 @@ struct AstroKernel {
     }
 
     /// Calculate sabbath day and sabbath eve
-    static func calculateSabbath(_ yearType: Int, _ mmonth: Int, _ md: Int) -> Int {
+    public static func calculateSabbath(_ yearType: Int, _ mmonth: Int, _ md: Int) -> Int {
         let mml = MyanmarCalendarKernel.calculateLengthOfMonth(mmonth, yearType)
         var sabbath = 0
 
@@ -81,7 +83,7 @@ struct AstroKernel {
     }
 
     /// Calculate yatyaza from month, and weekday
-    static func calculateYatyaza(_ mm: Int, _ weekDay: Int) -> Int {
+    public static func calculateYatyaza(_ mm: Int, _ weekDay: Int) -> Int {
         let m1 = mm % 4
         var yatyaza = 0
         let wd1 = (m1 / 2) + 4
@@ -95,7 +97,7 @@ struct AstroKernel {
     }
 
     /// Calculate pyathada from month, and weekday
-    static func calculatePyathada(_ mmonth: Int, _ weekDay: Int) -> Int {
+    public static func calculatePyathada(_ mmonth: Int, _ weekDay: Int) -> Int {
         let m1 = mmonth % 4
         let wda = [1, 3, 3, 0, 2, 1, 2]
 
@@ -113,7 +115,7 @@ struct AstroKernel {
     }
 
     /// Calculate nagahle from Myanmar month
-    static func calculateNagahle(_ mmonth: Int) -> Int {
+    public static func calculateNagahle(_ mmonth: Int) -> Int {
         var adjustedMonth = mmonth
         if adjustedMonth <= 0 {
             adjustedMonth = 4
@@ -122,17 +124,17 @@ struct AstroKernel {
     }
 
     /// mahabote
-    static func calculateMahabote(_ myear: Int, _ weekDay: Int) -> Int {
+    public static func calculateMahabote(_ myear: Int, _ weekDay: Int) -> Int {
         return (myear - weekDay) % 7
     }
 
     /// nakhat
-    static func calculateNakhat(_ myear: Int) -> Int {
+    public static func calculateNakhat(_ myear: Int) -> Int {
         return myear % 3
     }
 
     /// thamanyo
-    static func calculateThamanyo(_ mmonth: Int, _ weekDay: Int) -> Int {
+    public static func calculateThamanyo(_ mmonth: Int, _ weekDay: Int) -> Int {
         var adjustedMonth = mmonth
         let mmt = adjustedMonth / 13
         adjustedMonth = adjustedMonth % 13 + mmt
@@ -149,35 +151,35 @@ struct AstroKernel {
     }
 
     /// amyeittasote
-    static func calculateAmyeittasote(_ md: Int, _ weekDay: Int) -> Int {
+    public static func calculateAmyeittasote(_ md: Int, _ weekDay: Int) -> Int {
         let mf = MyanmarCalendarKernel.calculateFortnightDay(md)
         let wda = [5, 8, 3, 7, 2, 4, 1]
         return (mf == wda[weekDay]) ? 1 : 0
     }
 
     /// warameittugyi
-    static func calculateWarameittugyi(_ md: Int, _ weekDay: Int) -> Int {
+    public static func calculateWarameittugyi(_ md: Int, _ weekDay: Int) -> Int {
         let mf = MyanmarCalendarKernel.calculateFortnightDay(md)
         let wda = [7, 1, 4, 8, 9, 6, 3]
         return (mf == wda[weekDay]) ? 1 : 0
     }
 
     /// warameittunge
-    static func calculateWarameittunge(_ md: Int, _ weekDay: Int) -> Int {
+    public static func calculateWarameittunge(_ md: Int, _ weekDay: Int) -> Int {
         let mf = MyanmarCalendarKernel.calculateFortnightDay(md)
         let wn = (weekDay + 6) % 7
         return ((12 - mf) == wn) ? 1 : 0
     }
 
     /// yatpote
-    static func calculateYatpote(_ md: Int, _ wd: Int) -> Int {
+    public static func calculateYatpote(_ md: Int, _ wd: Int) -> Int {
         let mf = MyanmarCalendarKernel.calculateFortnightDay(md)
         let wda = [8, 1, 4, 6, 9, 8, 7]
         return (mf == wda[wd]) ? 1 : 0
     }
 
     /// Calculate year name
-    static func calculateYearName(_ myear: Int) -> Int {
+    public static func calculateYearName(_ myear: Int) -> Int {
         return myear % 12
     }
 }

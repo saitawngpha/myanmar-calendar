@@ -72,6 +72,31 @@ public struct MyanmarDate {
         return try MyanmarDateKernel.julianToMyanmarDate(jd)
     }
 
+    /// Create Myanmar Date from myanmar year, month, moon phase and fortnight day
+    /// - Parameters:
+    ///   - myear: Myanmar Year
+    ///   - mmonth: Myanmar month [Tagu=1, Kason=2, Nayon=3, 1st Waso=0, (2nd) Waso=4, etc.]
+    ///   - moonPhase: moon phase [0=waxing, 1=full moon, 2=waning, 3=new moon]
+    ///   - fortnightDay: fortnight day [1 to 15]
+    /// - Returns: Myanmar date
+    public static func create(myear: Int, mmonth: Int, moonPhase: Int, fortnightDay: Int) throws -> MyanmarDate {
+        let monthDay = MyanmarCalendarKernel.calculateDayOfMonth(myear, mmonth, moonPhase, fortnightDay)
+        return try create(myear: myear, mmonth: mmonth, monthDay: monthDay)
+    }
+
+    /// Create Myanmar Date from myanmar year, month name, moon phase name and fortnight day
+    /// - Parameters:
+    ///   - myear: Myanmar Year
+    ///   - myanmarMonthName: Myanmar month name
+    ///   - moonPhase: moon phase name ["Waxing", "Full Moon", "Waning", "New Moon"]
+    ///   - fortnightDay: fortnight day [1 to 15]
+    /// - Returns: Myanmar date
+    public static func create(myear: Int, myanmarMonthName: String, moonPhase: String, fortnightDay: Int) throws -> MyanmarDate {
+        let mmonth = MyanmarDateKernel.searchMyanmarMonthNumber(myanmarMonthName)
+        let moonPhaseValue = MyanmarDateKernel.searchMoonPhase(moonPhase)
+        return try create(myear: myear, mmonth: mmonth, moonPhase: moonPhaseValue, fortnightDay: fortnightDay)
+    }
+
     /// Create Myanmar Date from current date and time
     public static func now() throws -> MyanmarDate {
         return try of(Date())
@@ -107,7 +132,14 @@ public struct MyanmarDate {
     }
 
     /// Create Myanmar Date from Western date with calendar type
+    /// - Throws: `MyanmarDateError.invalidWesternDate` if month is not 1-12 or day is not 1-31
     public static func of(year: Int, month: Int, day: Int, calendarType: CalendarType, sg: Double) throws -> MyanmarDate {
+        guard (1...12).contains(month) else {
+            throw MyanmarDateKernel.MyanmarDateError.invalidWesternDate("Month must be 1-12, got: \(month)")
+        }
+        guard (1...31).contains(day) else {
+            throw MyanmarDateKernel.MyanmarDateError.invalidWesternDate("Day must be 1-31, got: \(day)")
+        }
         let julianDayNumber = WesternDateKernel.westernToJulian(year, month, day, calendarType, sg)
         return try of(julianDayNumber: julianDayNumber)
     }
@@ -170,17 +202,18 @@ public struct MyanmarDate {
 
     /// Get moon phase as string
     public func getMoonPhase(_ language: Language = Config.getInstance().language) -> String {
-        return LanguageTranslator.translateSentence(Constants.MSA[moonPhase], .english, language)
+        return LanguageTranslator.translate(Constants.MSA[moonPhase], language)
     }
 
     /// Get fortnight day value [1 to 15]
+    /// Returns an empty string on a full moon or new moon day, matching the reference implementation.
     public func getFortnightDay(_ language: Language = Config.getInstance().language) -> String {
-        return LanguageTranslator.translate(fortnightDay, language)
+        return (moonPhase % 2) == 0 ? LanguageTranslator.translate(fortnightDay, language) : ""
     }
 
     /// Get weekday name
     public func getWeekDay(_ language: Language = Config.getInstance().language) -> String {
-        return LanguageTranslator.translateSentence(Constants.WDA[weekDay], .english, language)
+        return LanguageTranslator.translate(Constants.WDA[weekDay], language)
     }
 
     /// Get weekday value [0=sat, 1=sun, ..., 6=fri]
@@ -208,67 +241,151 @@ public struct MyanmarDate {
         return toWesternDate().toDate()
     }
 
+    /// Get year type [0=common, 1=little watat, 2=big watat]
+    public func getYearType() -> Int {
+        return yearType
+    }
+
+    /// Get month type [1 = hnaung (late), 0 = Oo (early)]
+    public func getMonthType() -> Int {
+        return monthType
+    }
+
+    /// Get fortnight day value [1 to 15]
+    public func getFortnightDayValue() -> Int {
+        return fortnightDay
+    }
+
+    /// The length of the year in days [normal = 354, small watat = 384, big watat = 385]
+    public func lengthOfYear() -> Int {
+        return yearLength
+    }
+
+    /// The length of the month in days [29 or 30]
+    public func lengthOfMonth() -> Int {
+        return monthLength
+    }
+
+    /// Month name qualifier: "Late" for hnaung months and "Second" for the second Waso of a watat year.
+    public func getMnt(_ language: Language = Config.getInstance().language) -> String {
+        var result = ""
+
+        if monthType > 0 {
+            result += LanguageTranslator.translate("Late", language)
+        }
+
+        if yearType > 0 && mmonth == 4 {
+            result += LanguageTranslator.translate("Second", language)
+        }
+
+        return result
+    }
+
+    /// Whether the date falls on a weekend [Saturday or Sunday]
+    public func isWeekend() -> Bool {
+        return weekDay == 0 || weekDay == 1
+    }
+
+    // MARK: - Comparison and arithmetic
+
+    /// Checks if the Day, Month, and Year are the same, disregarding the Hour, Minute, and Second.
+    public func hasSameDay(_ other: MyanmarDate) -> Bool {
+        return myear == other.myear && mmonth == other.mmonth && monthDay == other.monthDay
+    }
+
+    /// Returns a MyanmarDate that is the specified number of days after this date.
+    /// - Parameter days: number of days to add (can be negative)
+    public func plusDays(_ days: Int) throws -> MyanmarDate {
+        return try MyanmarDateKernel.julianToMyanmarDate(jd + Double(days))
+    }
+
+    /// Returns a MyanmarDate that is the specified number of days before this date.
+    /// - Parameter days: number of days to subtract (can be negative)
+    public func minusDays(_ days: Int) throws -> MyanmarDate {
+        return try MyanmarDateKernel.julianToMyanmarDate(jd - Double(days))
+    }
+
+    /// Checks if this date is before the specified date.
+    public func isBefore(_ other: MyanmarDate) -> Bool {
+        return jd < other.jd
+    }
+
+    /// Checks if this date is after the specified date.
+    public func isAfter(_ other: MyanmarDate) -> Bool {
+        return jd > other.jd
+    }
+
+    // MARK: - Time of day
+
+    /// The hour-of-day field, from 0 to 23, in the Myanmar time zone.
+    public func getHour() -> Int {
+        return toWesternDate().hour
+    }
+
+    /// The minute-of-hour field, from 0 to 59, in the Myanmar time zone.
+    public func getMinute() -> Int {
+        return toWesternDate().minute
+    }
+
+    /// The second-of-minute field, from 0 to 59, in the Myanmar time zone.
+    public func getSecond() -> Int {
+        return toWesternDate().second
+    }
+
     // MARK: - Formatting
 
-    /// Format Myanmar date with pattern
-    /// Pattern letters:
-    /// S = Sasana year, s = Buddhist era, B = Burmese year, y = Myanmar year,
-    /// k = Ku, M = Month, p = Moon phase, f = Fortnight Day, r = Yat, E = Day name, n = Nay
+    /// Format Myanmar date with a pattern.
+    ///
+    /// Pattern letters (see `MyanmarDateFormat`):
+    /// `S` = Sasana Year, `s` = Buddhist era, `B` = Myanmar Year literal, `y` = Myanmar year,
+    /// `k` = Ku, `M` = Month, `p` = Moon phase, `f` = Fortnight day, `r` = Yat,
+    /// `E` = Weekday name, `n` = Nay. Any other character is copied through verbatim.
     public func format(_ pattern: String, _ language: Language = Config.getInstance().language) -> String {
-            var result = ""
+        var result = ""
+        result.reserveCapacity(pattern.count * 4)
 
-            let replacements: [Character: String] = [
-                "S": LanguageTranslator.translate("Sasana Year", language),
-                "s": getBuddhistEra(language),
-                "B": LanguageTranslator.translate("Myanmar Year", language),
-                "y": getYear(language),
-                "k": LanguageTranslator.translate("Ku", language),
-                "M": getMonthName(language),
-                "p": getMoonPhase(language),
-                "f": getFortnightDay(language),
-                "r": LanguageTranslator.translate("Yat", language),
-                "E": getWeekDay(language),
-                "n": LanguageTranslator.translate("Nay", language)
-            ]
-
-            for char in pattern {
-                if let replacement = replacements[char] {
-                    result += replacement
-                } else {
-                    result.append(char)
-                }
+        for char in pattern {
+            switch char {
+            case MyanmarDateFormat.sasanaYear:
+                result += LanguageTranslator.translate("Sasana Year", language)
+            case MyanmarDateFormat.buddhistEra:
+                result += getBuddhistEra(language)
+            case MyanmarDateFormat.burmeseYear:
+                result += LanguageTranslator.translate("Myanmar Year", language)
+            case MyanmarDateFormat.myanmarYear:
+                result += getYear(language)
+            case MyanmarDateFormat.ku:
+                result += LanguageTranslator.translate("Ku", language)
+            case MyanmarDateFormat.monthInYear:
+                result += getMonthName(language)
+            case MyanmarDateFormat.moonPhase:
+                result += getMoonPhase(language)
+            case MyanmarDateFormat.fortnightDay:
+                result += getFortnightDay(language)
+            case MyanmarDateFormat.yat:
+                result += LanguageTranslator.translate("Yat", language)
+            case MyanmarDateFormat.dayNameInWeek:
+                result += getWeekDay(language)
+            case MyanmarDateFormat.nay:
+                result += LanguageTranslator.translate("Nay", language)
+            default:
+                result.append(char)
             }
-
-            return result
         }
-//    public func format(_ pattern: String, _ language: Language = Config.getInstance().language) -> String {
-//        var result = pattern
-//
-//        let replacements: [(String, String)] = [
-//            ("S", LanguageTranslator.translate("Sasana Year", language)),
-//            ("s", getBuddhistEra(language)),
-//            ("B", LanguageTranslator.translate("Myanmar Year", language)),
-//            ("y", getYear(language)),
-//            ("k", LanguageTranslator.translate("Ku", language)),
-//            ("M", getMonthName(language)),
-//            ("p", getMoonPhase(language)),
-//            ("f", getFortnightDay(language)),
-//            ("r", LanguageTranslator.translate("Yat", language)),
-//            ("E", getWeekDay(language)),
-//            ("n", LanguageTranslator.translate("Nay", language))
-//        ]
-//
-//        for (pattern, replacement) in replacements {
-//            result = result.replacingOccurrences(of: pattern, with: replacement)
-//        }
-//
-//        return result
-//    }
+
+        return result
+    }
 }
 
 extension MyanmarDate: CustomStringConvertible {
+
+    /// Formats the date with `MyanmarDateFormat.simpleMyanmarDateFormatPattern` in the given language.
+    public func toString(_ language: Language = Config.getInstance().language) -> String {
+        return format(MyanmarDateFormat.simpleMyanmarDateFormatPattern, language)
+    }
+
     public var description: String {
-        return "Myanmar Year: \(myear), Month: \(getMonthName()), Day: \(monthDay), Weekday: \(getWeekDay())"
+        return toString()
     }
 }
 

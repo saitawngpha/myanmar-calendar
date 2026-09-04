@@ -17,7 +17,7 @@ public struct BusinessDayCalculator {
         if (gy == 2025 && gm == 1 && gd == 11)
             || (gy == 2025 && gm == 3 && (gd == 22 || gd == 29))
             || (gy == 2025 && gm == 11 && gd == 8)
-            || (gy == 2026 && gm == 1 && gd == 3) {
+            || (gy == 2026 && gm == 1 && gd == 10) {
             businessDay.append("Business Day")
         }
 

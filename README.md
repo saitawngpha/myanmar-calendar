@@ -15,9 +15,14 @@ For more information about the original project, see [the website](https://chanm
 * Calculate Buddhist Era
 * Moon phase calculations
 * Multiple language support (English, Myanmar Unicode, Zawgyi, Mon, Tai, Karen)
-* Date formatting with customizable patterns
+* Date formatting with customizable patterns, and parsing formatted text back to a date
+* Astrological days (yatyaza, pyathada, sabbath, nagahle, mahabote, nakhat and the rest)
+* Holidays, anniversaries and substitute business days
+* Thingyan (Myanmar New Year) calculations
 * Full Swift Package Manager support
 * All calculations based on Myanmar Standard Time (UTC+06:30)
+* Differential-tested against the [Java reference](https://github.com/chanmratekoko/mmcalendar)
+  over 548,501 consecutive days and all 6 languages
 
 ## Requirements
 
@@ -149,6 +154,25 @@ let myanmarFormatted = myanmarDate.format("S s k, B y k, M p f r En", .myanmar)
 | E      | Day name       | Monday            | တနင်္လာ          |
 | n      | Nay            | Nay               | နေ့               |
 
+#### Parsing a Formatted Date
+
+```swift
+let date = try MyanmarDateParser.parse(
+    "Myanmar Year 1385 Ku, Nadaw Waning 5 Yat",
+    "B y k, M p f r",
+    .english)
+
+// Myanmar Unicode, same pattern
+let mm = try MyanmarDateParser.parse(
+    "မြန်မာနှစ် ၁၃၈၅ ခု, နတ်တော် လဆုတ် ၅ ရက်",
+    "B y k, M p f r",
+    .myanmar)
+```
+
+The pattern must contain `y` (the Myanmar year); without it there is not enough
+information to build a date and the parser throws. On a full moon or new moon the
+fortnight day is blank, and the parser fills in 15.
+
 ### Converting Back to Western Date
 
 ```swift
@@ -209,6 +233,62 @@ let buddhistEra = myanmarDate.getBuddhistEraValue()
 
 // Output in Myanmar numerals: ၂၅၆၇
 let buddhistEraMyanmar = myanmarDate.getBuddhistEra(.myanmar)
+```
+
+#### Astrological Days
+
+```swift
+let myanmarDate = try MyanmarDate.of(year: 2024, month: 1, day: 1)
+let astro = Astro.of(myanmarDate)
+
+astro.isSabbath              // Bool
+astro.getSabbathOrEve()      // "Sabbath", "Sabbath Eve" or ""
+astro.getAstrologicalDay()   // "Yatyaza", "Pyathada", "Afternoon Pyathada" or ""
+astro.getNagahle(.english)   // "West" | "North" | "East" | "South"
+astro.getMahabote(.english)  // "Binga" ... "Puti"
+astro.getNakhat(.english)    // "Ogre" | "Elf" | "Human"
+astro.getYearName(.english)  // e.g. "Hpusha"
+print(astro.toString(.myanmar))
+```
+
+#### Date Arithmetic and Comparison
+
+```swift
+let date = try MyanmarDate.of(year: 2024, month: 1, day: 1)
+
+let nextWeek = try date.plusDays(7)
+let lastWeek = try date.minusDays(7)
+
+date.isBefore(nextWeek)      // true
+date.isAfter(lastWeek)       // true
+date.hasSameDay(nextWeek)    // false
+date.isWeekend()             // false (a Monday)
+date.getMnt(.english)        // "Late" / "Second" qualifier, or ""
+```
+
+#### Holidays and Anniversaries
+
+```swift
+let date = try MyanmarDate.of(year: 2024, month: 1, day: 4)
+
+HolidayCalculator.getHoliday(date)                       // configured language
+HolidayCalculator.getHoliday(date, .myanmar)             // ["လွတ်လပ်ရေး နေ့"]
+HolidayCalculator.isHoliday(date)                        // true
+HolidayCalculator.getAnniversary(date, .english)
+BusinessDayCalculator.substituteBusinessDay(2026, 1, 10) // ["Business Day"]
+```
+
+#### Using the Kernels Directly
+
+```swift
+let jdn = MyanmarDateKernel.myanmarDateToJulian(1385, 9, 5)
+let date = try MyanmarDateKernel.julianToMyanmarDate(Double(jdn))
+
+MyanmarDateKernel.checkWatat(1385)["watat"]          // 1
+MyanmarCalendarKernel.calculateYearType(1385)        // 0, 1 or 2
+WesternDateKernel.getLengthOfMonth(2024, 2, 0)       // 29
+AstroKernel.calculateSabbath(0, 9, 8)                // 1
+MyanmarYearConstants.getMyConst(1385).eraId          // 3.0
 ```
 
 #### Working with Western Dates
@@ -287,6 +367,20 @@ SOFTWARE.
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Changelog
+
+### Version 1.1.0
+- Verified against the Java reference by differential testing; fixed a holiday
+  operator-precedence bug affecting 2018-2021, a wrong substitute business day,
+  and a missing moon-phase guard on the fortnight day
+- Rewrote `LanguageTranslator` as a faithful port: full catalog, direct maps and a
+  trie for longest-prefix sentence translation, in all 6 languages and both directions
+- Added `MyanmarDateParser`, `MyanmarDateFormat` and `MyanmarEraConstants`
+- Made the kernels public: `MyanmarDateKernel`, `WesternDateKernel`, `AstroKernel`,
+  `BinarySearchUtil`, `MyanmarYearConstants`
+- Added the remaining `MyanmarDate` API (`getMnt`, `isWeekend`, `plusDays`,
+  `minusDays`, `isBefore`, `isAfter`, `hasSameDay`, `toString(_:)`, western date
+  validation, and the moon-phase/fortnight-day `create` overloads)
+- Added `Astro`'s localized getters and `toString(_:)`
 
 ### Version 1.0.0
 - Initial Swift Package Manager release
