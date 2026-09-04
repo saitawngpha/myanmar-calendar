@@ -340,8 +340,12 @@ The algorithm is capable of calculating from the commencement of the Myanmar Cal
 ```
 MIT License
 
-Copyright (c) 2017 Chan Mrate Ko Ko
 Copyright (c) 2025-2026 Sai Tawng Pha
+
+This library is a Swift port of mmcalendar
+(https://github.com/chanmratekoko/mmcalendar), Copyright (c) 2017
+Chan Mrate Ko Ko, used under the MIT License. The underlying Myanmar
+calendar algorithm is by Dr. Yan Naing Aye.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -360,13 +364,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-This library is a Swift port of mmcalendar
-(https://github.com/chanmratekoko/mmcalendar) by Chan Mrate Ko Ko, which is
-distributed under the MIT License. The underlying Myanmar calendar algorithm
-is by Dr. Yan Naing Aye.
 ```
 
 ## Contributing
